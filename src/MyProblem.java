@@ -1,27 +1,28 @@
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class MyProblem {
-    public static int numTasks = 10;
+    public static final int numTasks = 10;
 
     public static void main(String[] args) {
         System.out.println("Starting main...");
         int numProducer = Integer.parseInt(args[0]);
         int numConsumer = Integer.parseInt(args[1]);
         int capacity = Integer.parseInt(args[2]);
-        CountDownLatch latch = new CountDownLatch(numConsumer + numProducer);
-        LinkedBlockingQueue<Integer> buffer = new LinkedBlockingQueue<>(capacity);
+        LinkedBlockingQueue<String> buffer = new LinkedBlockingQueue<>(capacity);
         ArrayList<Thread> consumerList = new ArrayList<>(numConsumer);
         ArrayList<Thread> producerList = new ArrayList<>(numProducer);
+        CyclicBarrier cyclicBarrier = new CyclicBarrier(numProducer + numConsumer);
 
         for (int i = 0; i < numProducer; i++) {
-            Thread producer = new Thread(new Producer(i, buffer, latch));
+            Thread producer = new Thread(new Producer(i, buffer, cyclicBarrier));
             producerList.add(producer);
         }
 
         for (int i = 0; i < numConsumer; i++) {
-            Thread consumer = new Thread(new Consumer(i, buffer, latch));
+            Thread consumer = new Thread(new Consumer(i, buffer, cyclicBarrier));
             consumerList.add(consumer);
         }
 
@@ -33,11 +34,7 @@ public class MyProblem {
         ) {
             consumer.start();
         }
-        try {
-            latch.await();
-        } catch (InterruptedException interruptedException) {
-            interruptedException.printStackTrace();
-        }
-        System.out.println("Ending main...");
+
+     //   System.out.println("Ending main...");
     }
 }
